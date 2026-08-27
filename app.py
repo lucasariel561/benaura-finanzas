@@ -6,9 +6,6 @@ from mysql.connector import Error
 import urllib.parse
 import time
 
-# ==========================================
-# 🎨 1. CONFIGURACIÓN VISUAL
-# ==========================================
 st.set_page_config(page_title="BEN AURA | Panel", page_icon="🕯️", layout="wide")
 
 st.markdown("""
@@ -19,9 +16,6 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# ==========================================
-# ⚙️ 2. CONEXIÓN A BASE DE DATOS EN LA NUBE (TiDB)
-# ==========================================
 DB_CONFIG = {
     'host': st.secrets["DB_HOST"],
     'user': st.secrets["DB_USER"],
@@ -69,9 +63,6 @@ def obtener_proximo_pedido():
 # Cargamos todos los datos al abrir la app
 df = cargar_datos()
 
-# ==========================================
-# 🎁 3. CATÁLOGO AUTOMÁTICO 
-# ==========================================
 CATALOGO = {
     "Margarita Individual": {"costo": 800.0, "precio": 2800.0},
     "Margarita en Tarjeta": {"costo": 850.0, "precio": 3000.0},
@@ -84,9 +75,6 @@ CATALOGO = {
     "Otro": {"costo": 0.0, "precio": 0.0}
 }
 
-# ==========================================
-# 🗂️ 4. MENÚ LATERAL DE NAVEGACIÓN
-# ==========================================
 with st.sidebar:
     st.title("🕯️ BEN AURA")
     st.markdown("*Aromas que abrazan.*")
@@ -100,9 +88,6 @@ with st.sidebar:
         "📢 Anuncios (Próximamente)"
     ])
 
-# ==========================================
-# 📊 SECCIÓN: DASHBOARD GENERAL
-# ==========================================
 if menu == "📊 Dashboard General":
     st.header("📊 Rendimiento Diario")
     if not df.empty:
@@ -128,9 +113,6 @@ if menu == "📊 Dashboard General":
     else:
         st.info("Aún no hay ventas registradas.")
 
-# ==========================================
-# 📈 SECCIÓN: ESTADÍSTICAS POR MES
-# ==========================================
 elif menu == "📈 Estadísticas por Mes":
     st.header("📈 Evolución del Negocio")
     st.write("Analizá cómo crecen las ventas y ganancias de BEN AURA mes a mes.")
@@ -155,9 +137,6 @@ elif menu == "📈 Estadísticas por Mes":
     else:
         st.info("Aún no hay ventas suficientes para armar las estadísticas mensuales.")
 
-# ==========================================
-# 🛍️ SECCIÓN: CARGAR VENTA
-# ==========================================
 elif menu == "🛍️ Cargar Venta":
     st.header("🛍️ Registrar Nuevo Pedido")
     if 'venta_exitosa' in st.session_state and st.session_state.venta_exitosa:
@@ -194,9 +173,6 @@ elif menu == "🛍️ Cargar Venta":
             st.session_state.venta_exitosa = True
             st.rerun()
 
-# ==========================================
-# 🚚 SECCIÓN: GESTIÓN DE PEDIDOS
-# ==========================================
 elif menu == "🚚 Gestión de Pedidos":
     st.header("🚚 Seguimiento de Envíos y Entregas")
     
@@ -221,9 +197,6 @@ elif menu == "🚚 Gestión de Pedidos":
     else:
         st.info("Aún no hay pedidos para gestionar.")
 
-# ==========================================
-# 📲 SECCIÓN: CRM Y PROMOCIONES
-# ==========================================
 elif menu == "📲 CRM y Promociones":
     st.header("📲 Fidelización de Clientes")
     if not df.empty:
@@ -243,9 +216,6 @@ elif menu == "📲 CRM y Promociones":
     else:
         st.info("Aún no hay clientes registrados.")
 
-# ==========================================
-# 📢 SECCIÓN: ANUNCIOS
-# ==========================================
 elif menu == "📢 Anuncios (Próximamente)":
     st.header("📢 Seguimiento de Pauta Publicitaria")
     st.info("Esta sección está en construcción para conectar las métricas de tus anuncios.")
