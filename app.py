@@ -6,9 +6,6 @@ from mysql.connector import Error
 import urllib.parse
 import time
 
-# ==========================================
-# 🎨 1. CONFIGURACIÓN VISUAL
-# ==========================================
 st.set_page_config(page_title="BEN AURA | Panel", page_icon="🕯️", layout="wide")
 
 # Paleta de marca BEN AURA
@@ -83,9 +80,6 @@ st.markdown(f"""
     </style>
 """, unsafe_allow_html=True)
 
-# ==========================================
-# ⚙️ 2. CONEXIÓN A BASE DE DATOS EN LA NUBE (TiDB)
-# ==========================================
 DB_CONFIG = {
     'host': st.secrets["DB_HOST"],
     'user': st.secrets["DB_USER"],
@@ -157,7 +151,7 @@ def obtener_proximo_pedido():
 df = cargar_datos()
 
 # ==========================================
-# 🎁 3. CATÁLOGO AUTOMÁTICO
+# 🎁 3. CATÁLOGO AUTOMÁTICO 
 # ==========================================
 CATALOGO = {
     "Margarita Individual": {"costo": 800.0, "precio": 2800.0},
@@ -171,9 +165,6 @@ CATALOGO = {
     "Otro": {"costo": 0.0, "precio": 0.0}
 }
 
-# ==========================================
-# 🗂️ 4. MENÚ LATERAL DE NAVEGACIÓN
-# ==========================================
 with st.sidebar:
     st.title("🕯️ BEN AURA")
     st.markdown("*Aromas que abrazan.*")
@@ -188,9 +179,6 @@ with st.sidebar:
         "📢 Anuncios (Próximamente)"
     ], label_visibility="collapsed")
 
-# ==========================================
-# 📊 SECCIÓN: DASHBOARD GENERAL
-# ==========================================
 if menu == "📊 Dashboard General":
     st.header("📊 Rendimiento Diario")
     if not df.empty:
@@ -220,9 +208,6 @@ if menu == "📊 Dashboard General":
     else:
         st.info("Aún no hay ventas registradas.")
 
-# ==========================================
-# 📈 SECCIÓN: ESTADÍSTICAS POR MES
-# ==========================================
 elif menu == "📈 Estadísticas por Mes":
     st.header("📈 Evolución del Negocio")
     st.write("Analizá cómo crecen las ventas y ganancias de BEN AURA mes a mes.")
@@ -249,9 +234,6 @@ elif menu == "📈 Estadísticas por Mes":
     else:
         st.info("Aún no hay ventas suficientes para armar las estadísticas mensuales.")
 
-# ==========================================
-# 🛍️ SECCIÓN: CARGAR VENTA
-# ==========================================
 elif menu == "🛍️ Cargar Venta":
     st.header("🛍️ Registrar Nuevo Pedido")
     if 'venta_exitosa' in st.session_state and st.session_state.venta_exitosa:
@@ -288,9 +270,6 @@ elif menu == "🛍️ Cargar Venta":
             st.session_state.venta_exitosa = True
             st.rerun()
 
-# ==========================================
-# 🚚 SECCIÓN: GESTIÓN DE PEDIDOS
-# ==========================================
 elif menu == "🚚 Gestión de Pedidos":
     st.header("🚚 Seguimiento de Envíos y Entregas")
 
@@ -316,37 +295,6 @@ elif menu == "🚚 Gestión de Pedidos":
         st.info("Aún no hay pedidos para gestionar.")
 
 # ==========================================
-# 🗑️ SECCIÓN: ELIMINAR PEDIDO
-# ==========================================
-elif menu == "🗑️ Eliminar Pedido":
-    st.header("🗑️ Eliminar un Pedido")
-    st.caption("Usá esto para sacar pedidos de prueba y que no afecten el promedio de ganancias real.")
-
-    if not df.empty:
-        df_ordenado = df.sort_values('id', ascending=False)
-        opciones = {
-            row['id']: f"#{row['id']} — Pedido {row['n_pedido']} — {row['cliente'] or 'Sin nombre'} — {row['producto']} — ${row['total']:,.2f}"
-            for _, row in df_ordenado.iterrows()
-        }
-
-        id_elegido = st.selectbox(
-            "Elegí el pedido a eliminar:",
-            options=list(opciones.keys()),
-            format_func=lambda x: opciones[x]
-        )
-
-        st.warning("Esta acción no se puede deshacer.")
-        confirmar = st.checkbox("Sí, estoy seguro de que quiero eliminar este pedido")
-
-        if st.button("Eliminar definitivamente 🗑️", disabled=not confirmar):
-            eliminar_venta(id_elegido)
-            st.success("Pedido eliminado.")
-            time.sleep(1)
-            st.rerun()
-    else:
-        st.info("No hay pedidos cargados todavía.")
-
-# ==========================================
 # 📲 SECCIÓN: CRM Y PROMOCIONES
 # ==========================================
 elif menu == "📲 CRM y Promociones":
@@ -368,9 +316,6 @@ elif menu == "📲 CRM y Promociones":
     else:
         st.info("Aún no hay clientes registrados.")
 
-# ==========================================
-# 📢 SECCIÓN: ANUNCIOS
-# ==========================================
 elif menu == "📢 Anuncios (Próximamente)":
     st.header("📢 Seguimiento de Pauta Publicitaria")
     st.info("Esta sección está en construcción para conectar las métricas de tus anuncios.")
