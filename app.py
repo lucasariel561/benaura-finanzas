@@ -8,7 +8,7 @@ import time
 
 st.set_page_config(page_title="BEN AURA | Panel", page_icon="🕯️", layout="wide")
 
-
+# Paleta de marca BEN AURA
 MARFIL = "#F6F1EA"
 CREMA = "#EFE6D8"
 ARENA = "#DED0B8"
@@ -21,9 +21,10 @@ PELIGRO = "#B1554A"
 
 st.markdown(f"""
     <style>
-    .stApp {{ background-color: {MARFIL}; }}
+    .stApp {{ background-color: var(--background-color); }}
 
-    h1, h2, h3 {{ color: {MARRON}; font-family: 'Georgia', serif; }}
+    h1, h2, h3 {{ color: var(--text-color); font-family: 'Georgia', serif; }}
+    p, span, label, .stMarkdown {{ color: var(--text-color); }}
 
     [data-testid="stSidebar"] {{
         background-color: {MARRON};
@@ -45,13 +46,13 @@ st.markdown(f"""
     }}
 
     [data-testid="stMetric"] {{
-        background-color: white;
-        border: 1px solid {ARENA};
+        background-color: var(--secondary-background-color);
+        border: 1px solid var(--secondary-background-color);
         border-radius: 10px;
         padding: 14px 16px;
     }}
-    [data-testid="stMetricLabel"] {{ color: {TAUPE}; }}
-    [data-testid="stMetricValue"] {{ color: {MARRON}; }}
+    [data-testid="stMetricLabel"] {{ color: var(--text-color); opacity: 0.75; }}
+    [data-testid="stMetricValue"] {{ color: var(--text-color); }}
 
     div.stButton > button, .stFormSubmitButton > button {{
         background-color: {MARRON};
@@ -65,7 +66,7 @@ st.markdown(f"""
     }}
 
     [data-testid="stDataFrame"] {{
-        border: 1px solid {ARENA};
+        border: 1px solid var(--secondary-background-color);
         border-radius: 8px;
     }}
 
@@ -135,7 +136,7 @@ def eliminar_venta(id_venta):
 
 
 def obtener_proximo_pedido():
-    
+ 
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT COALESCE(MAX(CAST(n_pedido AS UNSIGNED)), 0) FROM ventas")
@@ -144,7 +145,9 @@ def obtener_proximo_pedido():
     return f"{(int(max_pedido) + 1):03d}"
 
 
+# Cargamos todos los datos al abrir la app
 df = cargar_datos()
+
 
 CATALOGO = {
     "Margarita Individual": {"costo": 800.0, "precio": 2800.0},
@@ -158,6 +161,7 @@ CATALOGO = {
     "Otro": {"costo": 0.0, "precio": 0.0}
 }
 
+
 with st.sidebar:
     st.title("🕯️ BEN AURA")
     st.markdown("*Aromas que abrazan.*")
@@ -170,6 +174,7 @@ with st.sidebar:
         "📲 CRM y Promociones",
         "📢 Anuncios (Próximamente)"
     ], label_visibility="collapsed")
+
 
 if menu == "📊 Dashboard General":
     st.header("📊 Rendimiento Diario")
@@ -222,6 +227,7 @@ if menu == "📊 Dashboard General":
     else:
         st.info("Aún no hay ventas registradas.")
 
+
 elif menu == "📈 Estadísticas por Mes":
     st.header("📈 Evolución del Negocio")
     st.write("Analizá cómo crecen las ventas y ganancias de BEN AURA mes a mes.")
@@ -247,6 +253,7 @@ elif menu == "📈 Estadísticas por Mes":
         st.bar_chart(data=df_agrupado, x='Mes', y='Ganancia_Neta', color=MARRON)
     else:
         st.info("Aún no hay ventas suficientes para armar las estadísticas mensuales.")
+
 
 elif menu == "🛍️ Cargar Venta":
     st.header("🛍️ Registrar Nuevo Pedido")
@@ -309,6 +316,7 @@ elif menu == "🚚 Gestión de Pedidos":
     else:
         st.info("Aún no hay pedidos para gestionar.")
 
+
 elif menu == "📲 CRM y Promociones":
     st.header("📲 Fidelización de Clientes")
     if not df.empty:
@@ -327,6 +335,7 @@ elif menu == "📲 CRM y Promociones":
             st.warning("Aún no tenés clientes con teléfono registrado.")
     else:
         st.info("Aún no hay clientes registrados.")
+
 
 elif menu == "📢 Anuncios (Próximamente)":
     st.header("📢 Seguimiento de Pauta Publicitaria")
