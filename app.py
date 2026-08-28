@@ -8,7 +8,7 @@ import time
 
 st.set_page_config(page_title="BEN AURA | Panel", page_icon="🕯️", layout="wide")
 
-# Paleta de marca BEN AURA
+
 MARFIL = "#F6F1EA"
 CREMA = "#EFE6D8"
 ARENA = "#DED0B8"
@@ -18,9 +18,7 @@ OK = "#6F8F6A"
 ALERTA = "#C47F4B"
 PELIGRO = "#B1554A"
 
-# Nota: los selectores [data-testid="..."] son estables entre versiones de
-# Streamlit (a diferencia de las clases .css-xxxxx que cambian con cada
-# release y por eso el estilo anterior no se estaba aplicando).
+
 st.markdown(f"""
     <style>
     .stApp {{ background-color: {MARFIL}; }}
@@ -144,15 +142,11 @@ def obtener_proximo_pedido():
     cursor.execute("SELECT COALESCE(MAX(CAST(n_pedido AS UNSIGNED)), 0) FROM ventas")
     max_pedido = cursor.fetchone()[0]
     conn.close()
-    return f"{(max_pedido + 1):03d}"
+    return f"{(int(max_pedido) + 1):03d}"
 
 
-# Cargamos todos los datos al abrir la app
 df = cargar_datos()
 
-# ==========================================
-# 🎁 3. CATÁLOGO AUTOMÁTICO 
-# ==========================================
 CATALOGO = {
     "Margarita Individual": {"costo": 800.0, "precio": 2800.0},
     "Margarita en Tarjeta": {"costo": 850.0, "precio": 3000.0},
@@ -174,7 +168,6 @@ with st.sidebar:
         "📈 Estadísticas por Mes",
         "🛍️ Cargar Venta",
         "🚚 Gestión de Pedidos",
-        "🗑️ Eliminar Pedido",
         "📲 CRM y Promociones",
         "📢 Anuncios (Próximamente)"
     ], label_visibility="collapsed")
@@ -204,7 +197,29 @@ if menu == "📊 Dashboard General":
 
         st.divider()
         st.metric("💎 Ganancia Histórica Total", f"${ganancia_historica:,.2f}")
-        st.dataframe(df_mes.drop(columns=['periodo']), use_container_width=True, hide_index=True, height=420)
+
+        st.caption("Hacé click a la izquierda de una fila para seleccionarla y poder eliminarla.")
+        tabla_a_mostrar = df_mes.drop(columns=['periodo', 'mes_anio'])
+        evento = st.dataframe(
+            tabla_a_mostrar,
+            use_container_width=True,
+            hide_index=True,
+            height=420,
+            on_select="rerun",
+            selection_mode="multi-row",
+            key="tabla_ventas_dashboard"
+        )
+
+        filas_sel = evento.selection.rows if evento and evento.selection else []
+        if filas_sel:
+            ids_sel = tabla_a_mostrar.iloc[filas_sel]['id'].tolist()
+            st.warning(f"Seleccionaste {len(ids_sel)} pedido(s) para eliminar. Esta acción no se puede deshacer.")
+            if st.button("🗑️ Eliminar pedido(s) seleccionado(s)"):
+                for id_venta in ids_sel:
+                    eliminar_venta(id_venta)
+                st.success("Pedido(s) eliminado(s).")
+                time.sleep(1)
+                st.rerun()
     else:
         st.info("Aún no hay ventas registradas.")
 
@@ -270,6 +285,7 @@ elif menu == "🛍️ Cargar Venta":
             st.session_state.venta_exitosa = True
             st.rerun()
 
+
 elif menu == "🚚 Gestión de Pedidos":
     st.header("🚚 Seguimiento de Envíos y Entregas")
 
@@ -294,9 +310,6 @@ elif menu == "🚚 Gestión de Pedidos":
     else:
         st.info("Aún no hay pedidos para gestionar.")
 
-# ==========================================
-# 📲 SECCIÓN: CRM Y PROMOCIONES
-# ==========================================
 elif menu == "📲 CRM y Promociones":
     st.header("📲 Fidelización de Clientes")
     if not df.empty:
