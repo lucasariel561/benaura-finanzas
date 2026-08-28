@@ -135,8 +135,7 @@ def eliminar_venta(id_venta):
 
 
 def obtener_proximo_pedido():
-    # Se usa el MAXIMO numero de pedido existente (no un COUNT) para que
-    # borrar pedidos de prueba no genere numeros de pedido repetidos despues.
+    
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT COALESCE(MAX(CAST(n_pedido AS UNSIGNED)), 0) FROM ventas")
