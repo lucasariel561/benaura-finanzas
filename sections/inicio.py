@@ -92,22 +92,23 @@ def render(df: pd.DataFrame) -> None:
         df_agrup,
         x="Mes",
         y="Ganancia",
-        color_discrete_sequence=[MARRON],
+        color_discrete_sequence=["#0F172A"],
         labels={"Ganancia": "Ganancia ($)", "Mes": ""},
         hover_data={"Ingresos": True},
     )
     fig.update_layout(
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(family="Poppins, sans-serif"),
+        font=dict(family="Plus Jakarta Sans, sans-serif", color="#475569"),
         margin=dict(l=0, r=0, t=10, b=0),
-        bargap=0.45,       # ← espacio entre barras; evita el bloque sólido con pocos meses
+        bargap=0.45,
         bargroupgap=0.1,
-        xaxis=dict(showgrid=False),
-        yaxis=dict(gridcolor="rgba(150,150,150,0.15)"),
+        xaxis=dict(showgrid=False, tickfont=dict(size=12, color="#64748B")),
+        yaxis=dict(gridcolor="#E2E8F0", tickfont=dict(size=12, color="#64748B")),
     )
     fig.update_traces(
         marker_line_width=0,
+        marker_color="#1E293B",
         hovertemplate="<b>%{x}</b><br>Ganancia: $%{y:,.0f}<br>Ingresos: $%{customdata[0]:,.0f}<extra></extra>"
     )
     st.plotly_chart(fig, use_container_width=True)

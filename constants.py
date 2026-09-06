@@ -2,15 +2,24 @@
 # BEN AURA — Constantes globales
 # ============================================================
 
-# --- Paleta de marca ---
-MARFIL  = "#F6F1EA"
-CREMA   = "#EFE6D8"
-ARENA   = "#DED0B8"
-TAUPE   = "#A68F75"
-MARRON  = "#6F5B47"
-OK      = "#6F8F6A"
-ALERTA  = "#C47F4B"
-PELIGRO = "#B1554A"
+# --- Paleta Minimalista Moderno / Clean SaaS ---
+FONDO_APP   = "#F8FAFC"  # Slate 50
+TEXTO_DARK  = "#0F172A"  # Slate 900
+TEXTO_MUTED = "#64748B"  # Slate 500
+BORDE_LIGHT = "#E2E8F0"  # Slate 200
+CARD_BG     = "#FFFFFF"  # White
+PRIMARY     = "#1E293B"  # Slate 800 (Dark elegant modern)
+ACCENT      = "#3B82F6"  # Blue 500
+OK          = "#10B981"  # Emerald
+ALERTA      = "#F59E0B"  # Amber
+PELIGRO     = "#EF4444"  # Red
+
+# Compatibilidad con imports existentes
+MARRON      = "#1E293B"
+TAUPE       = "#475569"
+ARENA       = "#E2E8F0"
+MARFIL      = "#F8FAFC"
+CREMA       = "#FFFFFF"
 
 # --- Meses en español ---
 MESES_ES = {
