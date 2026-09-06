@@ -142,24 +142,36 @@ def apply_styles() -> None:
         }}
 
         /* --- BOTONES MODERNOS --- */
-        div.stButton > button, .stFormSubmitButton > button {{
-            background: {PRIMARY} !important;
+        div.stButton > button,
+        .stFormSubmitButton > button,
+        button[kind="primary"],
+        button[kind="secondary"] {{
+            background-color: {PRIMARY} !important;
             color: #FFFFFF !important;
             border: 1px solid {PRIMARY} !important;
             border-radius: 8px !important;
-            padding: 8px 18px !important;
+            padding: 10px 20px !important;
             font-weight: 600 !important;
-            font-size: 0.9rem !important;
+            font-size: 0.95rem !important;
             letter-spacing: -0.01em;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
             transition: all 0.15s ease-in-out !important;
         }}
-        div.stButton > button:hover, .stFormSubmitButton > button:hover {{
-            background: #334155 !important;
+        div.stButton > button *,
+        .stFormSubmitButton > button * {{
+            color: #FFFFFF !important;
+        }}
+        div.stButton > button:hover,
+        .stFormSubmitButton > button:hover {{
+            background-color: #334155 !important;
             border-color: #334155 !important;
             color: #FFFFFF !important;
             transform: translateY(-1px) !important;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08) !important;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1) !important;
+        }}
+        div.stButton > button:hover *,
+        .stFormSubmitButton > button:hover * {{
+            color: #FFFFFF !important;
         }}
 
         /* --- INPUTS & SELECTS --- */
