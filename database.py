@@ -19,16 +19,20 @@ _POOL = None
 def _get_pool():
     global _POOL
     if _POOL is None:
-        _POOL = pooling.MySQLConnectionPool(
-            pool_name="benaura_pool",
-            pool_size=5,
-            pool_reset_session=True,
-            host=st.secrets["DB_HOST"],
-            user=st.secrets["DB_USER"],
-            password=st.secrets["DB_PASSWORD"],
-            port=int(st.secrets["DB_PORT"]),
-            database=DB_NAME,
-        )
+        kwargs = {
+            "pool_name": "benaura_pool",
+            "pool_size": 5,
+            "pool_reset_session": True,
+            "host": str(st.secrets["DB_HOST"]).strip(),
+            "user": str(st.secrets["DB_USER"]).strip(),
+            "password": str(st.secrets["DB_PASSWORD"]).strip(),
+            "port": int(st.secrets["DB_PORT"]),
+            "database": DB_NAME,
+        }
+        # TiDB Cloud requiere SSL habilitado
+        if "tidbcloud" in str(st.secrets.get("DB_HOST", "")).lower():
+            kwargs["ssl_disabled"] = False
+        _POOL = pooling.MySQLConnectionPool(**kwargs)
     return _POOL
 
 
@@ -39,11 +43,13 @@ def get_connection(use_db: bool = True):
             return _get_pool().get_connection()
         else:
             config = {
-                "host":     st.secrets["DB_HOST"],
-                "user":     st.secrets["DB_USER"],
-                "password": st.secrets["DB_PASSWORD"],
-                "port":     int(st.secrets["DB_PORT"]),
+                "host": str(st.secrets["DB_HOST"]).strip(),
+                "user": str(st.secrets["DB_USER"]).strip(),
+                "password": str(st.secrets["DB_PASSWORD"]).strip(),
+                "port": int(st.secrets["DB_PORT"]),
             }
+            if "tidbcloud" in str(st.secrets.get("DB_HOST", "")).lower():
+                config["ssl_disabled"] = False
             return mysql.connector.connect(**config)
     except Error as e:
         st.error(f"❌ No se pudo conectar a la base de datos: {e}")
