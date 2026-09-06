@@ -9,7 +9,10 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from constants import MESES_ES, MARRON, TAUPE, ESTADOS_PEDIDO, MEDIOS_PAGO, normalizar_estado
+from constants import (
+    MESES_ES, MARRON, TAUPE, ESTADOS_PEDIDO, MEDIOS_PAGO,
+    normalizar_estado, format_currency,
+)
 from database import (
     cargar_datos, cargar_productos, eliminar_venta, actualizar_venta,
     actualizar_estado_pedido, obtener_producto_por_nombre,
@@ -18,8 +21,7 @@ from database import (
 
 
 def _fmt(valor: float) -> str:
-    """Formatea un número al estilo argentino: $1.234,56"""
-    return f"${valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    return format_currency(valor)
 
 
 def render(df: pd.DataFrame) -> None:
@@ -169,7 +171,12 @@ def render(df: pd.DataFrame) -> None:
             col1, col2, col3 = st.columns(3)
             e_cliente  = col1.text_input("Cliente",       value=venta["cliente"] or "")
             e_cantidad = col2.number_input("Cantidad",    min_value=1, value=int(venta["cantidad"]))
-            e_precio   = col3.number_input("Precio unit.", value=float(venta["precio_unitario"]))
+            e_precio   = col3.number_input(
+                "Precio unit. ($)",
+                value=int(round(float(venta["precio_unitario"]))),
+                step=100,
+                format="%d",
+            )
 
             col4, col5 = st.columns(2)
             e_medio  = col4.selectbox("Forma de pago", MEDIOS_PAGO, index=MEDIOS_PAGO.index(pago_actual))

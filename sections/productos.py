@@ -9,7 +9,7 @@ import pandas as pd
 import streamlit as st
 
 from constants import (
-    INSUMOS_MATERIALES, INSUMOS_PACKAGING, UNIDAD_INSUMO,
+    INSUMOS_MATERIALES, INSUMOS_PACKAGING, UNIDAD_INSUMO, format_currency,
 )
 from database import (
     cargar_productos, guardar_producto,
@@ -19,7 +19,7 @@ from database import (
 
 
 def _fmt(valor: float) -> str:
-    return f"${valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    return format_currency(valor)
 
 
 def render() -> None:
@@ -126,11 +126,14 @@ def render() -> None:
 
         precio_key = f"p_precio_{pk}"
         if precio_key not in st.session_state:
-            st.session_state[precio_key] = float(prod_actual["precio_unitario"]) if not es_nuevo else precio_sug
+            val_init = float(prod_actual["precio_unitario"]) if not es_nuevo else precio_sug
+            st.session_state[precio_key] = int(round(val_init))
 
         precio_final = st.number_input(
             "Precio unitario ($) — podés ajustarlo manualmente",
-            min_value=0.0,
+            min_value=0,
+            step=100,
+            format="%d",
             key=precio_key
         )
 

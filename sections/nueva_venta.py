@@ -11,7 +11,7 @@ import streamlit as st
 
 from constants import (
     INSUMOS_MATERIALES, INSUMOS_PACKAGING, UNIDAD_INSUMO,
-    ESTADOS_PEDIDO, MEDIOS_PAGO,
+    ESTADOS_PEDIDO, MEDIOS_PAGO, format_currency,
 )
 from database import (
     cargar_datos, cargar_productos, cargar_compras_insumos,
@@ -21,7 +21,7 @@ from database import (
 
 
 def _fmt(valor: float) -> str:
-    return f"${valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    return format_currency(valor)
 
 
 def _calcular_costo_materiales(producto_row, tarifas: dict) -> float:
@@ -126,7 +126,9 @@ def render() -> None:
     # Precio pre-cargado del producto según el producto elegido
     precio_add = st.number_input(
         "Precio unitario ($)",
-        value=float(prod_sel["precio_unitario"]),
+        value=int(round(float(prod_sel["precio_unitario"]))),
+        step=100,
+        format="%d",
         key=f"nv_precio_{nombre_prod}",
         help="Podés ajustarlo si querés hacer un descuento puntual."
     )

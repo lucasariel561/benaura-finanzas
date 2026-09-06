@@ -65,3 +65,11 @@ def normalizar_estado(estado: str, entrega: str | None = None) -> str:
     if estado == "Pagado":
         return "💰 Pago recibido"
     return "⏳ Pendiente"
+
+
+def format_currency(valor: float) -> str:
+    """Formatea moneda argentina sin decimales si es entero redondo ($1.234) o con decimales si los tiene."""
+    val = float(valor)
+    if val.is_integer():
+        return f"${int(val):,}".replace(",", ".")
+    return f"${val:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")

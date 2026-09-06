@@ -7,11 +7,12 @@ import urllib.parse
 import pandas as pd
 import streamlit as st
 
+from constants import format_currency
 from database import cargar_datos
 
 
 def _fmt(valor: float) -> str:
-    return f"${valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    return format_currency(valor)
 
 
 def render(df: pd.DataFrame) -> None:
