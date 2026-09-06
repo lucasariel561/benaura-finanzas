@@ -6,27 +6,45 @@ Todas las funciones que tocan MySQL/TiDB viven acá.
 import streamlit as st
 import pandas as pd
 import mysql.connector
-from mysql.connector import Error
+from mysql.connector import Error, pooling
 
 DB_NAME = "benaura_db"
 
+# ============================================================
+# Conexión con Connection Pool (evita reconectar por cada query)
+# ============================================================
 
-# ============================================================
-# Conexión
-# ============================================================
+_POOL = None
+
+def _get_pool():
+    global _POOL
+    if _POOL is None:
+        _POOL = pooling.MySQLConnectionPool(
+            pool_name="benaura_pool",
+            pool_size=5,
+            pool_reset_session=True,
+            host=st.secrets["DB_HOST"],
+            user=st.secrets["DB_USER"],
+            password=st.secrets["DB_PASSWORD"],
+            port=int(st.secrets["DB_PORT"]),
+            database=DB_NAME,
+        )
+    return _POOL
+
 
 def get_connection(use_db: bool = True):
-    """Devuelve una conexión activa. Muestra error y detiene la app si falla."""
+    """Devuelve una conexión activa del pool. Reutiliza conexiones TCP/SSL existentes."""
     try:
-        config = {
-            "host":     st.secrets["DB_HOST"],
-            "user":     st.secrets["DB_USER"],
-            "password": st.secrets["DB_PASSWORD"],
-            "port":     int(st.secrets["DB_PORT"]),
-        }
         if use_db:
-            config["database"] = DB_NAME
-        return mysql.connector.connect(**config)
+            return _get_pool().get_connection()
+        else:
+            config = {
+                "host":     st.secrets["DB_HOST"],
+                "user":     st.secrets["DB_USER"],
+                "password": st.secrets["DB_PASSWORD"],
+                "port":     int(st.secrets["DB_PORT"]),
+            }
+            return mysql.connector.connect(**config)
     except Error as e:
         st.error(f"❌ No se pudo conectar a la base de datos: {e}")
         st.stop()
@@ -57,7 +75,7 @@ def insertar_venta(fecha, pedido, cliente, telefono, producto,
           cantidad, precio_u, total, medio_pago, estado, ganancia))
     conn.commit()
     conn.close()
-    cargar_datos.clear()
+    invalidar_caches()
 
 
 def actualizar_venta(id_venta, cliente, cantidad, precio_unitario,
@@ -75,7 +93,7 @@ def actualizar_venta(id_venta, cliente, cantidad, precio_unitario,
           ganancia_nueva, medio_pago, estado, id_venta))
     conn.commit()
     conn.close()
-    cargar_datos.clear()
+    invalidar_caches()
 
 
 def eliminar_venta(id_venta: int):
@@ -91,7 +109,7 @@ def eliminar_venta(id_venta: int):
     cursor.execute("DELETE FROM ventas WHERE id = %s", (id_venta,))
     conn.commit()
     conn.close()
-    cargar_datos.clear()
+    invalidar_caches()
     cargar_productos.clear()
 
 
@@ -101,9 +119,15 @@ def actualizar_estado_pedido(id_venta: int, nuevo_estado: str):
     cursor.execute("UPDATE ventas SET estado=%s WHERE id=%s", (nuevo_estado, id_venta))
     conn.commit()
     conn.close()
+    invalidar_caches()
+
+
+def invalidar_caches():
     cargar_datos.clear()
+    obtener_proximo_pedido.clear()
 
 
+@st.cache_data(ttl=60)
 def obtener_proximo_pedido() -> str:
     conn = get_connection()
     cursor = conn.cursor()
@@ -117,7 +141,7 @@ def obtener_proximo_pedido() -> str:
 # Productos
 # ============================================================
 
-@st.cache_data(ttl=60)
+@st.cache_data(ttl=120)
 def cargar_productos() -> pd.DataFrame:
     conn = get_connection()
     df = pd.read_sql_query("SELECT * FROM productos ORDER BY nombre", conn)

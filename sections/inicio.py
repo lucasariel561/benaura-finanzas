@@ -11,7 +11,7 @@ import streamlit as st
 
 from constants import MESES_ES, MARRON, TAUPE, ESTADOS_PEDIDO, MEDIOS_PAGO, normalizar_estado
 from database import (
-    cargar_datos, eliminar_venta, actualizar_venta,
+    cargar_datos, cargar_productos, eliminar_venta, actualizar_venta,
     actualizar_estado_pedido, obtener_producto_por_nombre,
     descontar_stock, restaurar_stock,
 )
@@ -113,7 +113,6 @@ def render(df: pd.DataFrame) -> None:
     st.divider()
 
     # --- Stock bajo (alerta rápida) ---
-    from database import cargar_productos
     prods = cargar_productos()
     if not prods.empty:
         bajos = prods[prods["stock"] < 5]
