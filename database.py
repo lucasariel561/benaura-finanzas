@@ -122,6 +122,8 @@ def cargar_productos() -> pd.DataFrame:
     conn = get_connection()
     df = pd.read_sql_query("SELECT * FROM productos ORDER BY nombre", conn)
     conn.close()
+    if not df.empty and "margen" not in df.columns:
+        df["margen"] = 0.50
     return df
 
 
@@ -130,22 +132,48 @@ def guardar_producto(id_producto, nombre, stock, gramos_cera,
                      precio_unitario, margen: float):
     conn = get_connection()
     cursor = conn.cursor()
-    if id_producto:
-        cursor.execute("""
-            UPDATE productos
-            SET nombre=%s, stock=%s, gramos_cera=%s, gramos_esencia=%s,
-                gramos_colorante=%s, cm_pabilo=%s, precio_unitario=%s, margen=%s
-            WHERE id=%s
-        """, (nombre, stock, gramos_cera, gramos_esencia,
-              gramos_colorante, cm_pabilo, precio_unitario, margen, id_producto))
-    else:
-        cursor.execute("""
-            INSERT INTO productos
-                (nombre, stock, gramos_cera, gramos_esencia,
-                 gramos_colorante, cm_pabilo, precio_unitario, margen)
-            VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
-        """, (nombre, stock, gramos_cera, gramos_esencia,
-              gramos_colorante, cm_pabilo, precio_unitario, margen))
+    # Asegurarse de que la columna margen exista si aún no ejecutaron el ALTER TABLE manual
+    try:
+        cursor.execute("ALTER TABLE productos ADD COLUMN margen decimal(5,4) DEFAULT 0.5000")
+        conn.commit()
+    except Exception:
+        pass
+
+    try:
+        if id_producto:
+            cursor.execute("""
+                UPDATE productos
+                SET nombre=%s, stock=%s, gramos_cera=%s, gramos_esencia=%s,
+                    gramos_colorante=%s, cm_pabilo=%s, precio_unitario=%s, margen=%s
+                WHERE id=%s
+            """, (nombre, stock, gramos_cera, gramos_esencia,
+                  gramos_colorante, cm_pabilo, precio_unitario, margen, id_producto))
+        else:
+            cursor.execute("""
+                INSERT INTO productos
+                    (nombre, stock, gramos_cera, gramos_esencia,
+                     gramos_colorante, cm_pabilo, precio_unitario, margen)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
+            """, (nombre, stock, gramos_cera, gramos_esencia,
+                  gramos_colorante, cm_pabilo, precio_unitario, margen))
+    except Exception:
+        # Fallback por si acaso la columna margen no se pudo agregar
+        if id_producto:
+            cursor.execute("""
+                UPDATE productos
+                SET nombre=%s, stock=%s, gramos_cera=%s, gramos_esencia=%s,
+                    gramos_colorante=%s, cm_pabilo=%s, precio_unitario=%s
+                WHERE id=%s
+            """, (nombre, stock, gramos_cera, gramos_esencia,
+                  gramos_colorante, cm_pabilo, precio_unitario, id_producto))
+        else:
+            cursor.execute("""
+                INSERT INTO productos
+                    (nombre, stock, gramos_cera, gramos_esencia,
+                     gramos_colorante, cm_pabilo, precio_unitario)
+                VALUES (%s,%s,%s,%s,%s,%s,%s)
+            """, (nombre, stock, gramos_cera, gramos_esencia,
+                  gramos_colorante, cm_pabilo, precio_unitario))
     conn.commit()
     conn.close()
     cargar_productos.clear()

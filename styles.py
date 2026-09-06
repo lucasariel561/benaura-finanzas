@@ -63,6 +63,11 @@ def apply_styles() -> None:
             margin-bottom: 6px;
             transition: all 0.2s ease;
             border-left: 3px solid transparent;
+            cursor: pointer;
+        }}
+        /* Ocultar el circulo de radio nativo para que parezcan botones/pestañas limpias */
+        [data-testid="stSidebar"] [role="radiogroup"] label > div:first-child {{
+            display: none !important;
         }}
         [data-testid="stSidebar"] [role="radiogroup"] label:hover {{
             background-color: rgba(255,255,255,0.16);

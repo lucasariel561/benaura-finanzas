@@ -118,11 +118,11 @@ def render() -> None:
     if int(prod_sel["stock"]) < 5:
         st.warning(f"⚠️ Stock bajo: {prod_sel['nombre']} ({int(prod_sel['stock'])} unidades disponibles)")
 
-    # Precio pre-cargado del producto
+    # Precio pre-cargado del producto según el producto elegido
     precio_add = st.number_input(
         "Precio unitario ($)",
         value=float(prod_sel["precio_unitario"]),
-        key="nv_precio",
+        key=f"nv_precio_{nombre_prod}",
         help="Podés ajustarlo si querés hacer un descuento puntual."
     )
 
