@@ -105,8 +105,13 @@ def render() -> None:
 
     st.divider()
 
-    # ── AGREGAR PRODUCTO AL CARRITO ───────────────────────────
-    st.subheader("➕ Agregar producto")
+    # Mensaje de éxito persistente tras guardar venta
+    if st.session_state.get("venta_exitosa"):
+        st.success("🎉 ¡Pedido registrado y guardado con éxito en la base de datos!")
+        st.session_state["venta_exitosa"] = False
+
+    # ── AGREGAR PRODUCTO AL CARRITO / PEDIDO ──────────────────
+    st.subheader("📦 Producto y cantidades")
 
     col_p1, col_p2 = st.columns([3, 1])
     nombre_prod = col_p1.selectbox("Producto", productos_df["nombre"].tolist(), key="nv_prod")
@@ -127,7 +132,7 @@ def render() -> None:
     )
 
     # Packaging para esta línea
-    st.caption("📦 Packaging para este producto (opcional):")
+    st.caption("🎁 Packaging para este producto (opcional):")
     pc1, pc2, pc3, pc4, pc5 = st.columns(5)
     pack = {
         "Bolsa":       pc1.number_input("Bolsas",       min_value=0, value=0, key="nv_pk_bolsa"),
@@ -146,7 +151,8 @@ def render() -> None:
     cm2.metric("Costo packaging",    _fmt(costo_pack))
     cm3.metric("Costo total/unidad", _fmt(costo_unit))
 
-    if st.button("➕ Agregar al carrito", use_container_width=False):
+    col_btn_add, col_btn_empty = st.columns([2, 1])
+    if col_btn_add.button("➕ Agregar otro producto a este pedido"):
         st.session_state["carrito"].append({
             "producto":      nombre_prod,
             "producto_id":   int(prod_sel["id"]),
@@ -157,61 +163,69 @@ def render() -> None:
         })
         st.rerun()
 
+    # Si hay productos adicionales en el carrito, los mostramos
+    items_a_guardar = list(st.session_state["carrito"])
+    
+    # Si el carrito está vacío, el producto actual es el ítem directo del pedido
+    if not items_a_guardar:
+        items_a_guardar = [{
+            "producto":      nombre_prod,
+            "producto_id":   int(prod_sel["id"]),
+            "cantidad":      cantidad_add,
+            "precio_u":      precio_add,
+            "costo_u":       costo_unit,
+            "packaging":     dict(pack),
+        }]
+    else:
+        st.divider()
+        st.subheader("🛒 Productos en este pedido")
+        for i, item in enumerate(st.session_state["carrito"]):
+            subtotal = item["cantidad"] * item["precio_u"]
+            ci1, ci2, ci3, ci4, ci5 = st.columns([3, 1, 1, 1, 1])
+            ci1.write(f"**{item['producto']}**")
+            ci2.write(f"x{item['cantidad']}")
+            ci3.write(_fmt(item["precio_u"]))
+            ci4.write(f"costo: {_fmt(item['costo_u'])}")
+            if ci5.button("🗑️", key=f"rm_{i}", help="Quitar"):
+                st.session_state["carrito"].pop(i)
+                st.rerun()
+
     st.divider()
+    st.subheader("📋 Resumen y confirmación")
+    total_pedido = sum(it["cantidad"] * it["precio_u"] for it in items_a_guardar)
+    ganancia_pedido = sum(it["cantidad"] * (it["precio_u"] - it["costo_u"]) for it in items_a_guardar)
 
-    # ── CARRITO ACTUAL ────────────────────────────────────────
-    carrito = st.session_state["carrito"]
-    if not carrito:
-        st.info("El carrito está vacío. Agregá al menos un producto para continuar.")
-        return
-
-    st.subheader("🛒 Carrito")
-
-    total_pedido    = 0.0
-    ganancia_pedido = 0.0
-    for i, item in enumerate(carrito):
-        subtotal  = item["cantidad"] * item["precio_u"]
-        gan_item  = subtotal - (item["cantidad"] * item["costo_u"])
-        total_pedido    += subtotal
-        ganancia_pedido += gan_item
-
-        ci1, ci2, ci3, ci4, ci5 = st.columns([3, 1, 1, 1, 1])
-        ci1.write(f"**{item['producto']}**")
-        ci2.write(f"x{item['cantidad']}")
-        ci3.write(_fmt(item["precio_u"]))
-        ci4.write(f"costo: {_fmt(item['costo_u'])}")
-        if ci5.button("🗑️", key=f"rm_{i}", help="Quitar del carrito"):
-            st.session_state["carrito"].pop(i)
-            st.rerun()
-
-    st.markdown("---")
     col_t1, col_t2 = st.columns(2)
-    col_t1.metric("💰 Total del pedido",   _fmt(total_pedido))
-    col_t2.metric("💵 Ganancia estimada",  _fmt(ganancia_pedido))
+    col_t1.metric("💰 Total del pedido", _fmt(total_pedido))
+    col_t2.metric("💵 Ganancia estimada", _fmt(ganancia_pedido))
 
     col_ok, col_clear = st.columns([2, 1])
-    confirmar = col_ok.button("💾 Confirmar pedido", type="primary", use_container_width=True)
-    if col_clear.button("🗑️ Vaciar carrito", use_container_width=True):
+    confirmar = col_ok.button("💾 Guardar y Confirmar Pedido", type="primary", use_container_width=True)
+    if st.session_state["carrito"] and col_clear.button("🗑️ Vaciar productos agregados", use_container_width=True):
         st.session_state["carrito"] = []
         st.rerun()
 
     if confirmar:
         if not cliente_final.strip():
-            st.error("Ingresá el nombre del cliente antes de confirmar.")
+            st.error("⚠️ Por favor ingresá el nombre del cliente arriba antes de confirmar.")
         else:
-            for item in carrito:
-                insertar_venta(
-                    str(fecha_pedido), proximo_n,
-                    cliente_final, telefono,
-                    item["producto"], item["cantidad"],
-                    item["precio_u"],
-                    item["cantidad"] * item["precio_u"],
-                    medio_pago, estado_ped,
-                    item["cantidad"] * item["precio_u"] - item["cantidad"] * item["costo_u"],
-                )
-                descontar_stock(item["producto_id"], item["cantidad"])
+            with st.spinner("Guardando venta en la base de datos..."):
+                for item in items_a_guardar:
+                    insertar_venta(
+                        str(fecha_pedido), proximo_n,
+                        cliente_final.strip(), telefono,
+                        item["producto"], item["cantidad"],
+                        item["precio_u"],
+                        item["cantidad"] * item["precio_u"],
+                        medio_pago, estado_ped,
+                        item["cantidad"] * (item["precio_u"] - item["costo_u"]),
+                    )
+                    descontar_stock(item["producto_id"], item["cantidad"])
 
             st.session_state["carrito"] = []
-            st.toast("✅ ¡Pedido guardado!", icon="🎉")
-            time.sleep(1)
+            st.session_state["venta_exitosa"] = True
+            # Limpiar campo de cliente para siguiente pedido
+            if "nv_cliente" in st.session_state:
+                st.session_state["nv_cliente"] = ""
+            time.sleep(0.5)
             st.rerun()
