@@ -60,14 +60,18 @@ def render(df: pd.DataFrame) -> None:
     idx_actual = meses_disponibles.index(mes_sel)
     delta_str  = None
     if idx_actual > 0:
-        mes_ant    = meses_disponibles[idx_actual - 1]
-        gan_ant    = float(df[df["mes_anio"] == mes_ant]["ganancia"].sum())
-        delta_str  = _fmt(ganancia_mes - gan_ant)
+        mes_ant   = meses_disponibles[idx_actual - 1]
+        gan_ant   = float(df[df["mes_anio"] == mes_ant]["ganancia"].sum())
+        delta_raw = ganancia_mes - gan_ant
+        # st.metric determina la flecha según si el string empieza con "-".
+        # _fmt devuelve "$X.XXX,XX" (empieza con "$"), que Streamlit siempre
+        # interpreta como positivo (↑). Hay que anteponer "-" explícitamente.
+        delta_str = ("-" if delta_raw < 0 else "") + _fmt(abs(delta_raw))
 
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("💰 Ventas del mes",   _fmt(ventas_mes))
-    c2.metric("📦 Pedidos del mes",  pedidos_mes)
-    c3.metric("💵 Ganancia del mes", _fmt(ganancia_mes), delta=delta_str)
+    c1.metric("💰 Ventas del mes",     _fmt(ventas_mes))
+    c2.metric("📦 Pedidos del mes",    pedidos_mes)
+    c3.metric("💵 Ganancia del mes",   _fmt(ganancia_mes), delta=delta_str)
     c4.metric("💎 Ganancia histórica", _fmt(ganancia_hist))
 
     st.divider()
@@ -95,10 +99,13 @@ def render(df: pd.DataFrame) -> None:
         plot_bgcolor="rgba(0,0,0,0)",
         font=dict(family="Poppins, sans-serif"),
         margin=dict(l=0, r=0, t=10, b=0),
+        bargap=0.45,       # ← espacio entre barras; evita el bloque sólido con pocos meses
+        bargroupgap=0.1,
         xaxis=dict(showgrid=False),
         yaxis=dict(gridcolor="rgba(150,150,150,0.15)"),
     )
     fig.update_traces(
+        marker_line_width=0,
         hovertemplate="<b>%{x}</b><br>Ganancia: $%{y:,.0f}<br>Ingresos: $%{customdata[0]:,.0f}<extra></extra>"
     )
     st.plotly_chart(fig, use_container_width=True)
